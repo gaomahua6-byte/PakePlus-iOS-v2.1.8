@@ -1,88 +1,1175 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="./static/css/styles.css" />
-        <meta
-            http-equiv="Content-Security-Policy"
-            content="default-src * 'unsafe-inline' 'unsafe-eval'"
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Tauri App</title>
-        <script src="./static/js/main.js"></script>
-    </head>
-    <body>
-        <main class="container">
-            <h1>Welcome to TauriMan</h1>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>杜精骗到 · 防诈骗AI训练平台</title>
+  <!-- 字体 (优雅完美风格) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ========== 全局设计令牌 (深色背景 + 金色主调) ========== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-            <div class="row">
-                <a
-                    href="https://tauri.app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <img
-                        src="./assets/tauri.svg"
-                        class="logo tauri"
-                        alt="Tauri logo"
-                    />
-                </a>
-                <a
-                    href="https://pakeplus.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <img
-                        src="https://hk.gh-proxy.org/https://github.com/Sjj1024/PakePlus/blob/main/app-icon.png"
-                        class="logo vanilla"
-                        alt="JavaScript logo"
-                    />
-                </a>
-            </div>
-            <p>Click to get data</p>
-            <form class="row" id="greet-form">
-                <input id="greet-input" placeholder="Enter a name..." />
-                <button type="submit" id="getdata">GET DATA</button>
-            </form>
-            <div class="functions">
-                <a href="./book.html" target="_self">跳转到book.html</a>
-                <a
-                    href="https://www.baidu.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >跳到百度blank
-                </a>
-                <a
-                    href="https://www.baidu.com"
-                    target="_self"
-                    rel="noopener noreferrer"
-                >
-                    跳到百度self
-                </a>
-                <button onclick="sayHello()">点击我</button>
-                <button onclick="sayHello()">下载文件</button>
-                <button onclick="sayHello()">上传文件</button>
-                <button onclick="sayHello()">访问相机</button>
-                <button onclick="sayHello()">访问麦克风</button>
-                <button onclick="sayHello()">访问相册</button>
-                <button class="btn" onclick="openWechat()">打开微信</button>
-                <button class="btn" onclick="openWechatScan()">
-                    打开扫一扫
-                </button>
-                <button class="btn" onclick="openZhihu()">打开知乎</button>
-                <button onclick="sayHello()">打开抖音</button>
-                <button onclick="sayHello()">用浏览器打开</button>
-                <button>打开知乎</button>
-            </div>
-            <p id="greet-msg"></p>
-            <img src="./static/image/cursor.jpeg" alt="logo" />
-            <video
-                src="https://hk.gh-proxy.org/https://github.com/Sjj1024/PakePlus/blob/main/docs/static/videos/pakeplus.mp4"
-                autoplay
-                controls
-                style="width: 100%; height: 100%"
-            ></video>
-            <audio src="./static/music/yin.mp3" controls></audio>
-        </main>
-    </body>
+    :root {
+      --bg-primary: #0a0e27;        /* 深黑蓝底 */
+      --bg-secondary: #0f1535;
+      --bg-tertiary: #151d3b;
+      --accent: #d4a574;             /* 金色 */
+      --accent-light: #e8c9a0;
+      --accent-dark: #b8885f;
+      --text-primary: #ffffff;
+      --text-secondary: #b0b8d4;
+      --border: #2a3555;
+      --border-light: #3a4570;
+      --card-bg: #141932;
+      --input-bg: #1f2747;
+      --radius: 0.75rem;
+      --success: #4caf92;
+      --error: #cf6679;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    /* 容器 */
+    .container {
+      width: 100%;
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    @media (min-width: 640px) {
+      .container { padding-left: 1.5rem; padding-right: 1.5rem; }
+    }
+    @media (min-width: 1024px) {
+      .container { padding-left: 2rem; padding-right: 2rem; }
+    }
+
+    /* ========== 导航栏固定：五大功能居中，右侧为“我的”模块 ========== */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background-color: rgba(10, 14, 39, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.5rem 0;
+    }
+
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* 左侧logo */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: var(--bg-primary);
+      box-shadow: 0 8px 16px rgba(212, 165, 116, 0.3);
+    }
+
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: none;
+    }
+    @media (min-width: 640px) {
+      .logo-text { display: inline; }
+    }
+
+    /* 五大功能版块 - 桌面端居中 */
+    .nav-features {
+      display: none;
+      gap: 1.5rem;
+      align-items: center;
+      justify-content: center;
+      flex: 1 1 auto;
+    }
+    @media (min-width: 1024px) {
+      .nav-features { display: flex; }
+    }
+
+    .feature-link {
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+      text-decoration: none;
+      white-space: nowrap;
+      padding: 0.2rem 0;
+    }
+    .feature-link:hover,
+    .feature-link.active {
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+    }
+
+    /* 右侧“我的”模块 */
+    .my-account {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      padding: 0.3rem 0.8rem;
+      border-radius: 40px;
+      background-color: rgba(212, 165, 116, 0.1);
+      border: 1px solid var(--border-light);
+      transition: all 0.2s;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+    .my-account:hover {
+      border-color: var(--accent);
+      background-color: rgba(212, 165, 116, 0.15);
+    }
+    .my-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bg-primary);
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .my-text {
+      font-weight: 600;
+      color: var(--accent);
+      display: none;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    @media (min-width: 480px) {
+      .my-text { display: inline; }
+    }
+
+    /* 移动端菜单按钮 */
+    .mobile-menu-btn {
+      display: block;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.5rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      margin-left: 0.5rem;
+      font-size: 1.2rem;
+    }
+    @media (min-width: 1024px) {
+      .mobile-menu-btn { display: none; }
+    }
+
+    /* 移动菜单面板 */
+    .mobile-panel {
+      display: none;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 1rem;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .mobile-panel.show { display: flex; }
+    .mobile-link {
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+    .mobile-link:hover {
+      background-color: var(--bg-tertiary);
+      color: var(--accent);
+    }
+
+    /* ========== 页面容器 ========== */
+    .page {
+      display: none;
+      padding-top: 5rem;  /* 给固定导航留空间 */
+      min-height: 100vh;
+    }
+    .page.active {
+      display: block;
+    }
+
+    /* 首页 hero */
+    .hero {
+      min-height: calc(100vh - 5rem);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: radial-gradient(circle at 30% 30%, rgba(212,165,116,0.1) 0%, transparent 60%);
+    }
+    .hero-badge {
+      display: inline-block;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 0.5rem 1.5rem;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+    .hero-title {
+      font-size: 3.5rem;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--accent), #f5d7b0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    @media (min-width: 768px) {
+      .hero-title { font-size: 5rem; }
+    }
+    .hero-sub {
+      font-size: 1.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+    .hero-desc {
+      max-width: 600px;
+      margin: 0 auto 2.5rem;
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn-solid {
+      background-color: var(--accent);
+      border: none;
+      color: var(--bg-primary);
+      padding: 0.75rem 2rem;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1rem;
+    }
+    .btn-solid:hover {
+      background-color: var(--accent-light);
+      box-shadow: 0 8px 16px rgba(212, 165, 116, 0.4);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+      padding: 0.75rem 2rem;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1rem;
+    }
+    .btn-outline:hover {
+      background-color: rgba(212, 165, 116, 0.1);
+    }
+
+    /* 统计卡片 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+      margin-top: 4rem;
+      width: 100%;
+      max-width: 800px;
+    }
+    @media (min-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .stat-label {
+      color: var(--text-secondary);
+    }
+
+    /* 卡片特性区 (首页快速入口) */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin: 4rem 0;
+      width: 100%;
+    }
+    .feature-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .feature-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 10px 25px -5px rgba(212,165,116,0.2);
+      transform: translateY(-2px);
+    }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background-color: rgba(212,165,116,0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.8rem;
+      color: var(--accent);
+      font-size: 1.8rem;
+    }
+    .feature-title {
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+    .feature-desc {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+    }
+
+    /* ========== 聊天容器 (所有功能页面一致) ========== */
+    .chat-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .chat-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+      box-shadow: 0 20px 40px -10px black;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .message {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+    .message.user { justify-content: flex-end; }
+    .message.assistant { justify-content: flex-start; }
+    .message-content {
+      max-width: 75%;
+      padding: 0.75rem 1rem;
+      border-radius: 16px;
+      word-break: break-word;
+      font-size: 0.95rem;
+    }
+    .message.user .message-content {
+      background-color: var(--accent);
+      color: var(--bg-primary);
+      border-bottom-right-radius: 4px;
+    }
+    .message.assistant .message-content {
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+    .message-time {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 0.2rem;
+      text-align: right;
+    }
+    .chat-footer {
+      border-top: 1px solid var(--border);
+      padding: 1rem;
+      background-color: rgba(15,21,53,0.5);
+      display: flex;
+      gap: 0.5rem;
+    }
+    .chat-input {
+      flex: 1;
+      background-color: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 0.75rem 1.2rem;
+      color: white;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .chat-input:focus {
+      border-color: var(--accent);
+    }
+    .send-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: var(--accent);
+      border: none;
+      color: var(--bg-primary);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* 加载动画 */
+    .loading-dots {
+      display: flex;
+      gap: 0.3rem;
+      padding: 0.5rem 0;
+    }
+    .loading-dots div {
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite;
+    }
+    .loading-dots div:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots div:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%,80%,100% { transform: translateY(0); }
+      40% { transform: translateY(-8px); }
+    }
+
+    /* 波浪加载 (用于复盘) */
+    .wave-loading {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 24px;
+    }
+    .wave-loading span {
+      width: 5px;
+      background-color: var(--accent);
+      border-radius: 4px;
+      animation: wave 1.2s ease-in-out infinite;
+    }
+    .wave-loading span:nth-child(1) { height: 16px; animation-delay: 0s; }
+    .wave-loading span:nth-child(2) { height: 24px; animation-delay: 0.2s; }
+    .wave-loading span:nth-child(3) { height: 12px; animation-delay: 0.4s; }
+    @keyframes wave {
+      0%,60%,100% { transform: scaleY(1); }
+      30% { transform: scaleY(1.8); }
+    }
+
+    /* 打字机光标 */
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.2em;
+      background-color: var(--accent);
+      vertical-align: middle;
+      margin-left: 2px;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity: 1; } 50% { opacity: 0; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 页面标题 */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .page-icon {
+      width: 50px;
+      height: 50px;
+      background-color: rgba(212,165,116,0.1);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+    .page-title {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ========== 我的模块弹出面板 (登录/注册) ========== */
+    .my-panel-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+    }
+    .my-panel {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      width: 90%;
+      max-width: 400px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.8rem 1.5rem;
+      box-shadow: 0 25px 50px -12px black;
+      animation: slideUp 0.3s ease;
+      position: relative;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .my-panel h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+    }
+    .my-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.8rem;
+    }
+    .my-tab {
+      flex: 1;
+      text-align: center;
+      padding: 0.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-weight: 600;
+      border-radius: 8px 8px 0 0;
+    }
+    .my-tab.active {
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+    }
+    .my-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .form-group label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-left: 0.5rem;
+    }
+    .my-input {
+      background-color: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 0.8rem 1.2rem;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      width: 100%;
+    }
+    .my-input:focus {
+      border-color: var(--accent);
+    }
+    .my-input.error {
+      border-color: var(--error);
+    }
+    .password-hint {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.2rem;
+      margin-left: 0.8rem;
+    }
+    .error-message {
+      color: var(--error);
+      font-size: 0.8rem;
+      margin-left: 0.8rem;
+      min-height: 1.2rem;
+    }
+    .my-submit {
+      background-color: var(--accent);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 40px;
+      padding: 0.9rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-top: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .my-submit:hover {
+      background-color: var(--accent-light);
+      box-shadow: 0 8px 20px rgba(212,165,116,0.4);
+    }
+    .my-close {
+      position: absolute;
+      top: 1rem;
+      right: 1.5rem;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      line-height: 1;
+    }
+    .my-close:hover {
+      color: var(--accent);
+    }
+    .logged-in-info {
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .logged-in-avatar {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .logged-in-user {
+      font-size: 1.4rem;
+      font-weight: 600;
+      word-break: break-word;
+    }
+    .logged-in-status {
+      color: var(--text-secondary);
+      margin: 1rem 0;
+    }
+    .logout-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 0.6rem 1.5rem;
+      border-radius: 40px;
+      margin-top: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .logout-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- 固定导航栏 - 五大功能居中，右侧为“我的”模块 -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <!-- 左侧logo (点击返回首页) -->
+      <div class="logo" onclick="showPage('home')">
+        <div class="logo-icon">🛡️</div>
+        <span class="logo-text">杜精骗到</span>
+      </div>
+
+      <!-- 五大功能版块 - 桌面端居中 -->
+      <div class="nav-features">
+        <a class="feature-link" onclick="showPage('fraudAlert')">防诈提醒</a>
+        <a class="feature-link" onclick="showPage('scamEncyclopedia')">骗局百科</a>
+        <a class="feature-link" onclick="showPage('streetScams')">街头骗局</a>
+        <a class="feature-link" onclick="showPage('telecomFraud')">电信诈骗</a>
+        <a class="feature-link" onclick="showPage('scamReplay')">模拟复盘</a>
+      </div>
+
+      <!-- 右侧“我的”模块 (登录/注册入口) -->
+      <div class="my-account" id="myAccountBtn" onclick="openMyPanel()">
+        <div class="my-avatar" id="myAvatar">👤</div>
+        <span class="my-text" id="myAccountText">我的</span>
+      </div>
+
+      <!-- 移动端菜单按钮 -->
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+    </div>
+
+    <!-- 移动菜单面板 (包含五大功能) -->
+    <div id="mobilePanel" class="mobile-panel container">
+      <a class="mobile-link" onclick="showPage('fraudAlert');toggleMobileMenu()">⚠️ 防诈提醒</a>
+      <a class="mobile-link" onclick="showPage('scamEncyclopedia');toggleMobileMenu()">📚 骗局百科</a>
+      <a class="mobile-link" onclick="showPage('streetScams');toggleMobileMenu()">🚶 街头骗局</a>
+      <a class="mobile-link" onclick="showPage('telecomFraud');toggleMobileMenu()">📱 电信诈骗</a>
+      <a class="mobile-link" onclick="showPage('scamReplay');toggleMobileMenu()">🔄 模拟复盘</a>
+    </div>
+  </nav>
+
+  <!-- 我的模块弹出面板 (登录/注册) -->
+  <div id="myPanelOverlay" class="my-panel-overlay" onclick="closeMyPanelOnOutside(event)">
+    <div class="my-panel" id="myPanel">
+      <span class="my-close" onclick="closeMyPanel()">×</span>
+      <h2 class="text-gradient-gold">我的账户</h2>
+      
+      <!-- 未登录状态 -->
+      <div id="notLoggedInContent">
+        <div class="my-tabs">
+          <div id="loginTab" class="my-tab active" onclick="switchAuthTab('login')">登录</div>
+          <div id="registerTab" class="my-tab" onclick="switchAuthTab('register')">注册</div>
+        </div>
+
+        <!-- 登录表单 -->
+        <div id="loginForm" class="my-form">
+          <div class="form-group">
+            <label>手机号 / 邮箱</label>
+            <input type="text" id="loginAccount" class="my-input" placeholder="请输入手机号或邮箱">
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="loginPassword" class="my-input" placeholder="请输入密码">
+          </div>
+          <div class="error-message" id="loginError"></div>
+          <button class="my-submit" onclick="handleLogin()">登 录</button>
+        </div>
+
+        <!-- 注册表单 (手机/邮箱 + 两遍密码) -->
+        <div id="registerForm" class="my-form hidden">
+          <div class="form-group">
+            <label>手机号 / 邮箱</label>
+            <input type="text" id="regAccount" class="my-input" placeholder="用于登录的账号">
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="regPassword" class="my-input" placeholder="至少8位">
+          </div>
+          <div class="form-group">
+            <label>确认密码</label>
+            <input type="password" id="regConfirmPassword" class="my-input" placeholder="再次输入密码">
+          </div>
+          <div class="error-message" id="registerError"></div>
+          <button class="my-submit" onclick="handleRegister()">注 册</button>
+          <div class="password-hint">使用手机或邮箱注册，密码需一致且不少于8位</div>
+        </div>
+      </div>
+
+      <!-- 已登录状态 -->
+      <div id="loggedInContent" class="hidden">
+        <div class="logged-in-info">
+          <div class="logged-in-avatar">👤</div>
+          <div class="logged-in-user" id="loggedInUser">user@example.com</div>
+          <div class="logged-in-status">已登录</div>
+          <button class="logout-btn" onclick="handleLogout()">退出登录</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ******************************** 页面容器 ******************************** -->
+  <!-- 首页 home -->
+  <div id="home" class="page active">
+    <div class="hero container">
+      <div class="hero-badge">✨ AI 驱动的诈骗思维训练平台</div>
+      <h1 class="hero-title">杜精骗到</h1>
+      <h2 class="hero-sub">谍锋大师</h2>
+      <p class="hero-desc">用 AI 的力量，磨你的诈骗思维。与杜精对话、诊断诈骗漏洞、识破陷阱——在辩论的世界里，成为那个永远无懈可击的人。</p>
+      <div class="hero-cta">
+        <button class="btn-solid" onclick="showPage('fraudAlert')">开始抬杜 →</button>
+        <button class="btn-outline" onclick="showPage('scamReplay')">诊断谍锋 →</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-item"><div class="stat-number">30+</div><div class="stat-label">诈骗类型</div></div>
+        <div class="stat-item"><div class="stat-number">AI</div><div class="stat-label">智能驱动</div></div>
+        <div class="stat-item"><div class="stat-number">∞</div><div class="stat-label">对话轮次</div></div>
+        <div class="stat-item"><div class="stat-number">100%</div><div class="stat-label">逻辑严谨</div></div>
+      </div>
+      <!-- 五大功能快速卡片 -->
+      <div class="features-grid">
+        <div class="feature-card" onclick="showPage('fraudAlert')"><div class="feature-icon">⚠️</div><div class="feature-title">防诈提醒</div><div class="feature-desc">可疑分析</div></div>
+        <div class="feature-card" onclick="showPage('scamEncyclopedia')"><div class="feature-icon">📚</div><div class="feature-title">骗局百科</div><div class="feature-desc">手法全知道</div></div>
+        <div class="feature-card" onclick="showPage('streetScams')"><div class="feature-icon">🚶</div><div class="feature-title">街头骗局</div><div class="feature-desc">案例拆解</div></div>
+        <div class="feature-card" onclick="showPage('telecomFraud')"><div class="feature-icon">📱</div><div class="feature-title">电信诈骗</div><div class="feature-desc">电话防骗</div></div>
+        <div class="feature-card" onclick="showPage('scamReplay')"><div class="feature-icon">🔄</div><div class="feature-title">模拟复盘</div><div class="feature-desc">深度拆解</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 防诈提醒 FraudAlert -->
+  <div id="fraudAlert" class="page">
+    <div class="container">
+      <div class="page-header">
+        <div class="page-icon">⚠️</div><h1 class="page-title">防诈提醒</h1>
+      </div>
+      <div class="chat-wrapper">
+        <div class="chat-card">
+          <div class="chat-messages" id="fraudAlertMessages">
+            <div class="message assistant"><div><div class="message-content">欢迎来到防诈提醒室。请描述你遇到的可疑情况，我会帮你识别潜在的诈骗风险。</div><div class="message-time">09:00</div></div></div>
+          </div>
+          <div class="chat-footer">
+            <input type="text" id="fraudAlertInput" class="chat-input" placeholder="描述可疑情况..." onkeypress="handleEnter(event, 'fraudAlert')">
+            <button class="send-btn" onclick="sendMessage('fraudAlert')">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 骗局百科 ScamEncyclopedia -->
+  <div id="scamEncyclopedia" class="page">
+    <div class="container">
+      <div class="page-header"><div class="page-icon">📚</div><h1 class="page-title">骗局百科</h1></div>
+      <div class="chat-wrapper">
+        <div class="chat-card">
+          <div class="chat-messages" id="scamEncyclopediaMessages">
+            <div class="message assistant"><div><div class="message-content">欢迎来到骗局百科。你可以查询任何诈骗类型的信息，我会为你提供详细解析。</div><div class="message-time">09:00</div></div></div>
+          </div>
+          <div class="chat-footer">
+            <input type="text" id="scamEncyclopediaInput" class="chat-input" placeholder="查询诈骗类型..." onkeypress="handleEnter(event, 'scamEncyclopedia')">
+            <button class="send-btn" onclick="sendMessage('scamEncyclopedia')">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 街头骗局 StreetScams -->
+  <div id="streetScams" class="page">
+    <div class="container">
+      <div class="page-header"><div class="page-icon">🚶</div><h1 class="page-title">街头骗局</h1></div>
+      <div class="chat-wrapper">
+        <div class="chat-card">
+          <div class="chat-messages" id="streetScamsMessages">
+            <div class="message assistant"><div><div class="message-content">欢迎来到街头骗局分析室。请描述你想了解的街头诈骗手法。</div><div class="message-time">09:00</div></div></div>
+          </div>
+          <div class="chat-footer">
+            <input type="text" id="streetScamsInput" class="chat-input" placeholder="例如：猜瓜子、掉钱分钱..." onkeypress="handleEnter(event, 'streetScams')">
+            <button class="send-btn" onclick="sendMessage('streetScams')">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 电信诈骗 TelecomFraud -->
+  <div id="telecomFraud" class="page">
+    <div class="container">
+      <div class="page-header"><div class="page-icon">📱</div><h1 class="page-title">电信诈骗</h1></div>
+      <div class="chat-wrapper">
+        <div class="chat-card">
+          <div class="chat-messages" id="telecomFraudMessages">
+            <div class="message assistant"><div><div class="message-content">欢迎来到电信诈骗防范室。请提出你关于电信诈骗的任何问题。</div><div class="message-time">09:00</div></div></div>
+          </div>
+          <div class="chat-footer">
+            <input type="text" id="telecomFraudInput" class="chat-input" placeholder="例如：冒充公检法..." onkeypress="handleEnter(event, 'telecomFraud')">
+            <button class="send-btn" onclick="sendMessage('telecomFraud')">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模拟骗局复盘 ScamReplay (带打字机) -->
+  <div id="scamReplay" class="page">
+    <div class="container">
+      <div class="page-header"><div class="page-icon">🔄</div><h1 class="page-title">模拟骗局复盘</h1></div>
+      <div class="chat-wrapper">
+        <div class="chat-card">
+          <div class="chat-messages" id="scamReplayMessages">
+            <div class="message assistant"><div><div class="message-content">欢迎来到模拟骗局复盘室。请描述你遭遇或想象的诈骗情景，我会深入分析骗局套路。</div><div class="message-time">09:00</div></div></div>
+          </div>
+          <div class="chat-footer">
+            <input type="text" id="scamReplayInput" class="chat-input" placeholder="描述诈骗情景..." onkeypress="handleEnter(event, 'scamReplay')">
+            <button class="send-btn" onclick="sendMessage('scamReplay')">→</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========== 路由与UI控制 ==========
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const page = document.getElementById(pageId);
+      if (page) page.classList.add('active');
+      window.scrollTo(0, 0);
+      document.getElementById('mobilePanel')?.classList.remove('show');
+    }
+
+    function toggleMobileMenu() {
+      document.getElementById('mobilePanel')?.classList.toggle('show');
+    }
+
+    // 关闭移动菜单
+    document.addEventListener('click', function(e) {
+      const panel = document.getElementById('mobilePanel');
+      const btn = document.querySelector('.mobile-menu-btn');
+      if (panel && btn && !btn.contains(e.target) && !panel.contains(e.target) && panel.classList.contains('show')) {
+        panel.classList.remove('show');
+      }
+    });
+
+    // ========== 我的面板逻辑 ==========
+    let isLoggedIn = false;           // 模拟登录状态
+    let currentUser = '';
+
+    function openMyPanel() {
+      document.getElementById('myPanelOverlay').style.display = 'flex';
+    }
+    function closeMyPanel() {
+      document.getElementById('myPanelOverlay').style.display = 'none';
+    }
+    function closeMyPanelOnOutside(e) {
+      if (e.target.classList.contains('my-panel-overlay')) closeMyPanel();
+    }
+
+    // 切换登录/注册tab
+    function switchAuthTab(tab) {
+      if (tab === 'login') {
+        document.getElementById('loginTab').classList.add('active');
+        document.getElementById('registerTab').classList.remove('active');
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('registerForm').classList.add('hidden');
+      } else {
+        document.getElementById('registerTab').classList.add('active');
+        document.getElementById('loginTab').classList.remove('active');
+        document.getElementById('registerForm').classList.remove('hidden');
+        document.getElementById('loginForm').classList.add('hidden');
+      }
+      document.getElementById('loginError').innerText = '';
+      document.getElementById('registerError').innerText = '';
+    }
+
+    // 模拟登录
+    function handleLogin() {
+      const account = document.getElementById('loginAccount').value.trim();
+      const pwd = document.getElementById('loginPassword').value.trim();
+      if (!account || !pwd) {
+        document.getElementById('loginError').innerText = '账号和密码不能为空';
+        return;
+      }
+      // 模拟登录成功
+      isLoggedIn = true;
+      currentUser = account;
+      updateMyPanelAfterLogin();
+      closeMyPanel();
+    }
+
+    // 注册 (手机/邮箱 + 两遍密码)
+    function handleRegister() {
+      const account = document.getElementById('regAccount').value.trim();
+      const pwd = document.getElementById('regPassword').value.trim();
+      const confirm = document.getElementById('regConfirmPassword').value.trim();
+      const errorEl = document.getElementById('registerError');
+
+      if (!account || !pwd || !confirm) {
+        errorEl.innerText = '所有字段都必须填写';
+        return;
+      }
+      // 简单格式校验 (演示用)
+      const isEmail = account.includes('@') && account.includes('.');
+      const isPhone = /^\d{11}$/.test(account);
+      if (!isEmail && !isPhone) {
+        errorEl.innerText = '请输入有效的手机号(11位)或邮箱';
+        return;
+      }
+      if (pwd.length < 8) {
+        errorEl.innerText = '密码至少8位';
+        return;
+      }
+      if (pwd !== confirm) {
+        errorEl.innerText = '两次密码不一致';
+        return;
+      }
+      // 注册成功
+      isLoggedIn = true;
+      currentUser = account;
+      updateMyPanelAfterLogin();
+      closeMyPanel();
+    }
+
+    function updateMyPanelAfterLogin() {
+      document.getElementById('notLoggedInContent').classList.add('hidden');
+      document.getElementById('loggedInContent').classList.remove('hidden');
+      document.getElementById('loggedInUser').innerText = currentUser;
+      // 更新右上角显示
+      const displayName = currentUser.length > 10 ? currentUser.substring(0,8)+'…' : currentUser;
+      document.getElementById('myAccountText').innerText = displayName;
+    }
+
+    function handleLogout() {
+      isLoggedIn = false;
+      currentUser = '';
+      document.getElementById('notLoggedInContent').classList.remove('hidden');
+      document.getElementById('loggedInContent').classList.add('hidden');
+      document.getElementById('myAccountText').innerText = '我的';
+      // 重置表单
+      document.getElementById('loginAccount').value = '';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('regAccount').value = '';
+      document.getElementById('regPassword').value = '';
+      document.getElementById('regConfirmPassword').value = '';
+      switchAuthTab('login');
+      closeMyPanel();
+    }
+
+    // ========== 聊天模拟 (AI回复) ==========
+    const replyMap = {
+      fraudAlert: "根据您描述的情况，这极有可能是假冒客服诈骗。请勿提供验证码、密码或进行屏幕共享。建议立即挂断并拨打官方电话核实。",
+      scamEncyclopedia: "虚假投资理财诈骗：骗子以高额回报为饵，诱导下载虚假APP。初期小额返利，待大额投入后无法提现。防范：高收益必有高风险，选择正规渠道。",
+      streetScams: "街头常见的“象棋残局”骗局：骗子摆摊设局，托儿假装赢钱，引诱路人下注。实际棋局为死局，路人必输。切记：街头残局多为骗局。",
+      telecomFraud: "冒充领导/熟人诈骗：骗子盗用领导头像添加微信，以急需用钱为由要求转账。务必通过电话或当面核实，绝不盲目汇款。",
+      scamReplay: "杀猪盘复盘：第一步，骗子在婚恋网站物色目标，塑造完美人设；第二步，确立恋爱关系后，诱导投资博彩；第三步，小额盈利后怂恿大额投入，最终失联。关键漏洞：拒绝视频、快速表白、诱导投资。防范：网恋不见面不转账。"
+    };
+
+    function sendMessage(chatType) {
+      const input = document.getElementById(chatType + 'Input');
+      const container = document.getElementById(chatType + 'Messages');
+      if (!input || !container) return;
+      const msg = input.value.trim();
+      if (msg === '') return;
+
+      // 添加用户消息
+      const userMsgDiv = document.createElement('div');
+      userMsgDiv.className = 'message user';
+      userMsgDiv.innerHTML = `<div><div class="message-content">${escapeHtml(msg)}</div><div class="message-time">${getCurrentTime()}</div></div>`;
+      container.appendChild(userMsgDiv);
+      container.scrollTop = container.scrollHeight;
+      input.value = '';
+      input.disabled = true;
+
+      // 加载动画
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'message assistant';
+      if (chatType === 'scamReplay') {
+        loadingDiv.innerHTML = `<div><div class="message-content"><div class="wave-loading"><span></span><span></span><span></span></div><span style="color:var(--text-secondary); margin-left:8px;">AI分析中...</span></div></div>`;
+      } else {
+        loadingDiv.innerHTML = `<div><div class="message-content"><div class="loading-dots"><div></div><div></div><div></div></div></div></div>`;
+      }
+      container.appendChild(loadingDiv);
+      container.scrollTop = container.scrollHeight;
+
+      setTimeout(() => {
+        container.removeChild(loadingDiv);
+        const reply = replyMap[chatType] || "感谢您的提问，请提高警惕。";
+        if (chatType === 'scamReplay') {
+          typewriterEffect(container, reply, 'assistant', getCurrentTime());
+        } else {
+          const assistantDiv = document.createElement('div');
+          assistantDiv.className = 'message assistant';
+          assistantDiv.innerHTML = `<div><div class="message-content">${escapeHtml(reply)}</div><div class="message-time">${getCurrentTime()}</div></div>`;
+          container.appendChild(assistantDiv);
+          container.scrollTop = container.scrollHeight;
+        }
+        input.disabled = false;
+        input.focus();
+      }, 1500);
+    }
+
+    // 打字机效果 (用于复盘)
+    function typewriterEffect(container, text, role, timestamp) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${role}`;
+      const innerDiv = document.createElement('div');
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      const timeDiv = document.createElement('div');
+      timeDiv.className = 'message-time';
+      timeDiv.innerText = timestamp;
+      innerDiv.appendChild(contentDiv);
+      innerDiv.appendChild(timeDiv);
+      msgDiv.appendChild(innerDiv);
+      container.appendChild(msgDiv);
+
+      let i = 0;
+      function addChar() {
+        if (i < text.length) {
+          contentDiv.innerHTML = escapeHtml(text.substring(0, i+1)) + '<span class="cursor"></span>';
+          i++;
+          setTimeout(addChar, 35);
+        } else {
+          contentDiv.innerHTML = escapeHtml(text);
+        }
+        container.scrollTop = container.scrollHeight;
+      }
+      addChar();
+    }
+
+    function handleEnter(e, chatType) {
+      if (e.key === 'Enter') { e.preventDefault(); sendMessage(chatType); }
+    }
+
+    function getCurrentTime() {
+      const d = new Date(); 
+      return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
+    
+    function escapeHtml(unsafe) {
+      return unsafe.replace(/[&<>"]/g, function(m) {
+        if(m === '&') return '&amp;';
+        if(m === '<') return '&lt;';
+        if(m === '>') return '&gt;';
+        if(m === '"') return '&quot;';
+        return m;
+      });
+    }
+
+    // 初始化首页
+    showPage('home');
+  </script>
+</body>
 </html>
