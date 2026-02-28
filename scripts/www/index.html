@@ -1,88 +1,1375 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="./static/css/styles.css" />
-        <meta
-            http-equiv="Content-Security-Policy"
-            content="default-src * 'unsafe-inline' 'unsafe-eval'"
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Tauri App</title>
-        <script src="./static/js/main.js"></script>
-    </head>
-    <body>
-        <main class="container">
-            <h1>Welcome to TauriMan</h1>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>搭子宇宙 · 功能集成到头像菜单</title>
+    <!-- 引入 Leaflet 地图库 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        /* ========== 全局样式 ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
 
-            <div class="row">
-                <a
-                    href="https://tauri.app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <img
-                        src="./assets/tauri.svg"
-                        class="logo tauri"
-                        alt="Tauri logo"
-                    />
-                </a>
-                <a
-                    href="https://pakeplus.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    <img
-                        src="https://hk.gh-proxy.org/https://github.com/Sjj1024/PakePlus/blob/main/app-icon.png"
-                        class="logo vanilla"
-                        alt="JavaScript logo"
-                    />
-                </a>
+        body {
+            background-color: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .phone-frame {
+            width: 375px;
+            max-width: 100%;
+            background-color: white;
+            border-radius: 36px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            height: 700px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* ========== 固定头部 ========== */
+        .fixed-header {
+            background-color: white;
+            border-bottom: 1px solid #f0f0f0;
+            z-index: 10;
+        }
+
+        .search-bar {
+            padding: 12px 16px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .search-bar .search-box {
+            flex: 1;
+            background-color: #F0F0F0;
+            border-radius: 30px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #999;
+            font-size: 14px;
+        }
+        .voice-btn {
+            width: 44px;
+            height: 44px;
+            background: #FF4242;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(255, 66, 66, 0.2);
+        }
+
+        .secondary-nav {
+            display: flex;
+            gap: 12px;
+            padding: 8px 16px 4px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .secondary-nav .nav-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            border-radius: 30px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .secondary-nav .nav-tab.active {
+            background-color: #FF4242;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* 分类标签 */
+        .categories {
+            padding: 8px 16px 12px;
+            white-space: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .categories::-webkit-scrollbar { display: none; }
+        .category-item {
+            display: inline-block;
+            padding: 6px 16px;
+            margin-right: 10px;
+            background-color: #F5F5F5;
+            border-radius: 30px;
+            font-size: 14px;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .category-item.active {
+            background-color: #FF4242;
+            color: white;
+            font-weight: 500;
+        }
+
+        /* ========== 主内容区域 ========== */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            background-color: #F9F9F9;
+            position: relative;
+        }
+
+        /* 页面容器（底部导航切换） */
+        .page {
+            display: none;
+            height: 100%;
+        }
+        #rd-home, #rd-group, #rd-profile, #rd-message {
+            display: none;
+        }
+        #rd-home:checked ~ .main-content #home-page,
+        #rd-group:checked ~ .main-content #group-page,
+        #rd-profile:checked ~ .main-content #profile-page,
+        #rd-message:checked ~ .main-content #message-page {
+            display: block;
+        }
+
+        /* 瀑布流容器 */
+        .feed {
+            column-count: 2;
+            column-gap: 12px;
+            padding: 12px 12px 20px;
+        }
+
+        /* 卡片样式（移除了底部操作栏） */
+        .card {
+            break-inside: avoid;
+            margin-bottom: 12px;
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+        .card-image {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background-color: #e0e0e0;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+        }
+        .card-tag {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(255,255,255,0.9);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #FF4242;
+        }
+        .card-people {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.6);
+            padding: 4px 8px;
+            border-radius: 30px;
+            font-size: 11px;
+            color: white;
+        }
+        .card-content {
+            padding: 10px 10px 8px;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            cursor: pointer;
+        }
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #ddd;
+            background-size: cover;
+        }
+        .user-info {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .user-info .meta {
+            font-size: 11px;
+            color: #999;
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+        .card-detail {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .card-detail span {
+            background-color: #F5F5F5;
+            padding: 4px 8px;
+            border-radius: 30px;
+        }
+        .price { color: #FF4242; font-weight: 600; }
+        .friend-badge {
+            background-color: #FFE0E0;
+            color: #FF4242;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            margin-left: 4px;
+        }
+        .distance {
+            color: #FF4242;
+            font-weight: 500;
+        }
+        /* 继续上次对话提示 */
+        .resume-badge {
+            background: #FFE0E0;
+            color: #FF4242;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            margin-left: 4px;
+            cursor: pointer;
+        }
+
+        /* ========== 组局页面 - 真实地图 ========== */
+        .group-header {
+            padding: 12px 16px;
+            background: white;
+        }
+        #map {
+            height: 200px;
+            border-radius: 20px;
+            z-index: 1;
+        }
+        .group-list {
+            padding: 0 16px;
+        }
+        .group-item {
+            background: white;
+            border-radius: 18px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .group-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: #FFE0E0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .group-info h4 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .group-info p {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+        .group-info p span { color: #FF4242; margin-right: 8px; }
+
+        /* 静态发帖表单 */
+        .post-form-demo {
+            margin: 16px;
+            background: white;
+            border-radius: 24px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .post-form-demo h3 {
+            margin-bottom: 12px;
+            font-size: 16px;
+            color: #333;
+        }
+        .form-row { margin-bottom: 12px; }
+        .form-row input, .form-row textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 30px;
+            background: #fafafa;
+            font-size: 14px;
+            outline: none;
+        }
+        .form-row textarea { border-radius: 20px; resize: none; }
+        .form-row button {
+            background: #FF4242;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        /* 浮动发布按钮（组局页右下角） */
+        .float-group-btn {
+            position: sticky;
+            bottom: 20px;
+            left: calc(100% - 80px);
+            width: 56px;
+            height: 56px;
+            background: #FF4242;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            box-shadow: 0 6px 16px rgba(255,66,66,0.3);
+            margin: 10px 16px 20px auto;
+            cursor: pointer;
+            z-index: 15;
+        }
+
+        /* ========== 消息页面 ========== */
+        .message-list {
+            padding: 12px;
+        }
+        .chat-item {
+            background: white;
+            border-radius: 18px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .chat-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #FFB6C1;
+        }
+        .chat-info {
+            flex: 1;
+        }
+        .chat-info h4 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .chat-info p {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* ========== 个人主页 ========== */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            padding: 20px 16px;
+            background: white;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .profile-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #FFB6C1;
+            margin-right: 16px;
+        }
+        .profile-info {
+            flex: 1;
+        }
+        .profile-info h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .profile-info p {
+            font-size: 13px;
+            color: #999;
+        }
+        .edit-profile {
+            background: #f0f0f0;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .section-title {
+            font-weight: 600;
+            margin: 16px 16px 8px;
+            color: #333;
+        }
+        .tag-wall {
+            background: white;
+            border-radius: 18px;
+            padding: 16px;
+            margin: 0 16px 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .tag-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .tag-item {
+            background: #f5f5f5;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+        .achievement-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .achievement {
+            background: #FFF2E0;
+            color: #FF4242;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .feed-mini {
+            padding: 0 16px;
+        }
+        .feed-mini .card {
+            margin-bottom: 8px;
+        }
+        .group-record {
+            background: white;
+            border-radius: 18px;
+            padding: 16px;
+            margin: 0 16px 16px;
+        }
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .record-item:last-child {
+            border-bottom: none;
+        }
+
+        /* ========== 同城热门排行榜 ========== */
+        .hot-tabs {
+            display: flex;
+            gap: 16px;
+            padding: 12px 16px 0;
+            background: white;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .hot-tab {
+            font-size: 14px;
+            font-weight: 500;
+            color: #999;
+            padding-bottom: 8px;
+            cursor: pointer;
+        }
+        .hot-tab.active {
+            color: #FF4242;
+            border-bottom: 2px solid #FF4242;
+        }
+        .hot-list {
+            background: white;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+        }
+        .hot-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .hot-item:last-child {
+            border-bottom: none;
+        }
+        .hot-rank {
+            width: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #FF4242;
+        }
+        .hot-info {
+            flex: 1;
+        }
+        .hot-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .hot-info p {
+            font-size: 12px;
+            color: #999;
+        }
+        .hot-stats {
+            color: #FF4242;
+            font-weight: 500;
+        }
+
+        /* ========== 底部导航 ========== */
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid #F0F0F0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 6px 12px 8px;
+            font-size: 11px;
+            color: #999;
+            position: relative;
+            z-index: 5;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            flex: 1;
+            color: #999;
+        }
+        .nav-item .icon {
+            font-size: 22px;
+        }
+        .nav-item.active {
+            color: #FF4242;
+            font-weight: 500;
+        }
+        .nav-item.center {
+            background: #FF4242;
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0;
+            box-shadow: 0 4px 8px rgba(255, 66, 66, 0.2);
+        }
+        .nav-item.center .icon {
+            font-size: 28px;
+        }
+        .nav-item.center span:last-child {
+            display: none;
+        }
+
+        /* ========== 语音问一问浮层 ========== */
+        .voice-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 30;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .voice-overlay.show {
+            display: flex;
+        }
+        .voice-panel {
+            background: white;
+            width: 100%;
+            border-radius: 30px 30px 0 0;
+            padding: 24px 20px 30px;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .voice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .voice-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .close-voice {
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+        }
+        .record-btn {
+            width: 70px;
+            height: 70px;
+            background: #FF4242;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px auto 20px;
+            color: white;
+            font-size: 30px;
+            box-shadow: 0 6px 16px rgba(255,66,66,0.3);
+            cursor: pointer;
+        }
+        .record-btn.recording {
+            background: #ff6b6b;
+            animation: pulse 1.2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .voice-status {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .transcript-box {
+            background: #f5f5f5;
+            border-radius: 30px;
+            padding: 16px;
+            margin-bottom: 16px;
+            font-size: 15px;
+            color: #333;
+            min-height: 60px;
+        }
+        .answer-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        .answer-card {
+            background: #fafafa;
+            border-radius: 18px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #FF4242;
+        }
+        .answer-card .user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .answer-card .user .avatar-small {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #FFB6C1;
+        }
+        .answer-card .user span {
+            font-weight: 500;
+            font-size: 13px;
+        }
+        .answer-card .text {
+            font-size: 13px;
+            color: #444;
+            margin-bottom: 4px;
+        }
+        .answer-card .tag {
+            font-size: 11px;
+            color: #FF4242;
+            background: #ffe0e0;
+            padding: 2px 8px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .demo-hint {
+            color: #999;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        /* ========== 用户操作菜单（五个功能集成） ========== */
+        .user-menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 40;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .user-menu-overlay.show {
+            display: flex;
+        }
+        .user-menu-panel {
+            background: white;
+            width: 100%;
+            border-radius: 30px 30px 0 0;
+            padding: 20px 20px 30px;
+            animation: slideUp 0.3s ease;
+        }
+        .user-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .user-menu-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .close-user-menu {
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+        }
+        .user-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+        }
+        .user-menu-item:last-child {
+            border-bottom: none;
+        }
+        .user-menu-item .icon {
+            font-size: 24px;
+            color: #FF4242;
+        }
+        .user-menu-cancel {
+            margin-top: 20px;
+            text-align: center;
+            padding: 14px;
+            background: #f5f5f5;
+            border-radius: 30px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+        }
+
+        /* ========== 灵魂20问浮层 ========== */
+        .soul-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 50;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .soul-overlay.show {
+            display: flex;
+        }
+        .soul-panel {
+            background: white;
+            width: 100%;
+            border-radius: 30px 30px 0 0;
+            padding: 24px 20px 30px;
+            animation: slideUp 0.3s ease;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        .soul-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .soul-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .close-soul {
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+        }
+        .chat-progress {
+            background: #f0f0f0;
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 20px;
+        }
+        .chat-progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #FF4242;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .chat-messages {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+        .message {
+            display: flex;
+            margin-bottom: 12px;
+        }
+        .message.me {
+            justify-content: flex-end;
+        }
+        .message .bubble {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .message.me .bubble {
+            background: #FF4242;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .message.you .bubble {
+            background: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-input {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            font-size: 14px;
+            outline: none;
+        }
+        .chat-input button {
+            background: #FF4242;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .unlock-hint {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 13px;
+            color: #FF4242;
+            font-weight: 500;
+        }
+
+        /* 头像颜色 */
+        .avatar.a1 { background: #FFB6C1; }
+        .avatar.a2 { background: #B0E0E6; }
+        .avatar.a3 { background: #C1E1C1; }
+        .avatar.a4 { background: #FDEB9F; }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <!-- 固定头部 -->
+        <div class="fixed-header">
+            <div class="search-bar">
+                <div class="search-box">
+                    <span>🔍</span>
+                    <span>搜索你感兴趣的搭子...</span>
+                </div>
+                <div class="voice-btn" id="voiceBtn">🎤</div>
             </div>
-            <p>Click to get data</p>
-            <form class="row" id="greet-form">
-                <input id="greet-input" placeholder="Enter a name..." />
-                <button type="submit" id="getdata">GET DATA</button>
-            </form>
-            <div class="functions">
-                <a href="./book.html" target="_self">跳转到book.html</a>
-                <a
-                    href="https://www.baidu.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >跳到百度blank
-                </a>
-                <a
-                    href="https://www.baidu.com"
-                    target="_self"
-                    rel="noopener noreferrer"
-                >
-                    跳到百度self
-                </a>
-                <button onclick="sayHello()">点击我</button>
-                <button onclick="sayHello()">下载文件</button>
-                <button onclick="sayHello()">上传文件</button>
-                <button onclick="sayHello()">访问相机</button>
-                <button onclick="sayHello()">访问麦克风</button>
-                <button onclick="sayHello()">访问相册</button>
-                <button class="btn" onclick="openWechat()">打开微信</button>
-                <button class="btn" onclick="openWechatScan()">
-                    打开扫一扫
-                </button>
-                <button class="btn" onclick="openZhihu()">打开知乎</button>
-                <button onclick="sayHello()">打开抖音</button>
-                <button onclick="sayHello()">用浏览器打开</button>
-                <button>打开知乎</button>
+            <div class="secondary-nav">
+                <div class="nav-tab active" data-feed="discover">发现</div>
+                <div class="nav-tab" data-feed="follow">关注</div>
+                <div class="nav-tab" data-feed="local">同城</div>
             </div>
-            <p id="greet-msg"></p>
-            <img src="./static/image/cursor.jpeg" alt="logo" />
-            <video
-                src="https://hk.gh-proxy.org/https://github.com/Sjj1024/PakePlus/blob/main/docs/static/videos/pakeplus.mp4"
-                autoplay
-                controls
-                style="width: 100%; height: 100%"
-            ></video>
-            <audio src="./static/music/yin.mp3" controls></audio>
-        </main>
-    </body>
+            <!-- 分类标签 -->
+            <div class="categories" id="categoryContainer">
+                <span class="category-item active" data-category="all">🔥 推荐</span>
+                <span class="category-item" data-category="travel">✈️ 旅行</span>
+                <span class="category-item" data-category="food">🍜 干饭</span>
+                <span class="category-item" data-category="game">🎮 游戏</span>
+                <span class="category-item" data-category="sports">🏸 运动</span>
+                <span class="category-item" data-category="study">📚 学习</span>
+                <span class="category-item" data-category="movie">🎬 电影</span>
+                <span class="category-item" data-category="coffee">☕ 咖啡</span>
+                <span class="category-item" data-category="fitness">🏋️ 减肥</span>
+                <span class="category-item" data-category="nightowl">🌙 熬夜</span>
+                <span class="category-item" data-category="work">💼 上班</span>
+                <span class="category-item" data-category="daze">😶 发呆</span>
+                <span class="category-item" data-category="unemployed">📉 失业</span>
+                <span class="category-item" data-category="exam">📚 考公</span>
+                <span class="category-item" data-category="emotion">❤️ 情绪</span>
+                <span class="category-item" data-category="prep">📝 备考</span>
+                <span class="category-item" data-category="startup">🚀 创业</span>
+                <span class="category-item" data-category="pet">🐾 云宠</span>
+                <span class="category-item" data-category="workout">💪 健身</span>
+            </div>
+        </div>
+
+        <!-- 底部页面切换radio -->
+        <input type="radio" name="page" id="rd-home" checked>
+        <input type="radio" name="page" id="rd-group">
+        <input type="radio" name="page" id="rd-profile">
+        <input type="radio" name="page" id="rd-message">
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 首页（发现流）移除了底部操作栏，仅保留卡片内容 -->
+            <div id="home-page" class="page">
+                <div class="discover-feed feed" id="feedContainer">
+                    <!-- 卡片示例（没有底部操作栏） -->
+                    <div class="card" data-category="food" data-username="小食神">
+                        <div class="card-image"><span class="card-tag">#饭搭子</span><span class="card-people">👥 2/4</span></div>
+                        <div class="card-content">
+                            <div class="card-header" data-username="小食神">
+                                <div class="avatar a1"></div>
+                                <div class="user-info">
+                                    小食神 <span class="meta">· 30分钟前</span>
+                                    <span class="resume-badge" data-username="小食神" style="display:none;">继续对话</span>
+                                </div>
+                            </div>
+                            <div class="card-title">周末有人一起打卡静安寺新开的日料吗？</div>
+                            <div class="card-detail"><span>📍 静安寺</span><span>⏰ 周六 12:00</span><span class="price">💰 AA/150</span></div>
+                        </div>
+                    </div>
+                    <div class="card" data-category="travel" data-username="走四方">
+                        <div class="card-image"><span class="card-tag">#旅行搭子</span><span class="card-people">👥 1/3</span></div>
+                        <div class="card-content">
+                            <div class="card-header" data-username="走四方">
+                                <div class="avatar a2"></div>
+                                <div class="user-info">
+                                    走四方 <span class="meta">· 2小时前</span>
+                                    <span class="resume-badge" data-username="走四方" style="display:none;">继续对话</span>
+                                </div>
+                            </div>
+                            <div class="card-title">下周去川西，捡一个会拍照的搭子，车已租</div>
+                            <div class="card-detail"><span>📍 成都出发</span><span>⏰ 4.20-4.25</span><span class="price">💰 均摊</span></div>
+                        </div>
+                    </div>
+                    <!-- 其他卡片略... -->
+                </div>
+            </div>
+
+            <!-- 同城流（带热门排行榜） -->
+            <div class="local-feed" id="localFeed" style="display: none;">
+                <div class="hot-tabs">
+                    <div class="hot-tab active" data-hot="group">热门组局</div>
+                    <div class="hot-tab" data-hot="post">热门帖子</div>
+                </div>
+                <div class="hot-list" id="hotGroupList">
+                    <div class="hot-item"><div class="hot-rank">1</div><div class="hot-info"><h4>羽毛球·徐汇滨江</h4><p>🔥 12人报名 · 距离1.2km</p></div></div>
+                    <div class="hot-item"><div class="hot-rank">2</div><div class="hot-info"><h4>日料探店·静安寺</h4><p>🔥 8人报名 · 距离800m</p></div></div>
+                </div>
+                <div class="hot-list" id="hotPostList" style="display: none;">
+                    <div class="hot-item"><div class="hot-rank">1</div><div class="hot-info"><h4>川西徒步攻略</h4><p>❤️ 56点赞 · 2小时前</p></div></div>
+                    <div class="hot-item"><div class="hot-rank">2</div><div class="hot-info"><h4>静安寺日料探店</h4><p>❤️ 32点赞 · 昨天</p></div></div>
+                </div>
+                <!-- 同城普通卡片 -->
+                <div class="feed">
+                    <div class="card" data-category="food" data-username="附近的人">
+                        <div class="card-image"><span class="card-tag">#饭搭子</span><span class="card-people">👥 1/2</span></div>
+                        <div class="card-content">
+                            <div class="card-header" data-username="附近的人">
+                                <div class="avatar a3"></div>
+                                <div class="user-info">附近的人 <span class="meta">· 5分钟前</span></div>
+                            </div>
+                            <div class="card-title">有人一起午餐吗？就在陆家嘴</div>
+                            <div class="card-detail"><span>📍 陆家嘴</span><span>⏰ 12:30</span><span class="price">💰 AA</span><span class="distance">距离800m</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 关注流（简略） -->
+            <div class="follow-feed feed" id="followFeed" style="display: none;"></div>
+
+            <!-- 组局页面（集成真实地图） -->
+            <div id="group-page" class="page">
+                <div class="group-header"><div id="map"></div></div>
+                <div class="group-list">
+                    <div class="group-item"><div class="group-avatar">🏸</div><div class="group-info"><h4>羽毛球 · 徐汇滨江</h4><p><span>2/4人</span> 今天 19:00 · 距离1.2km</p></div></div>
+                    <div class="group-item"><div class="group-avatar">🍜</div><div class="group-info"><h4>日料探店 · 静安寺</h4><p><span>1/3人</span> 明天 12:30 · 距离800m</p></div></div>
+                </div>
+                <div class="post-form-demo">
+                    <h3>发起新组局</h3>
+                    <div class="form-row"><input type="text" placeholder="标题"></div>
+                    <div class="form-row"><textarea rows="2" placeholder="描述"></textarea></div>
+                    <div class="form-row"><button>发布招募</button></div>
+                </div>
+                <div class="float-group-btn" id="floatGroupBtn">+</div>
+            </div>
+
+            <!-- 消息页面 -->
+            <div id="message-page" class="page">
+                <div class="message-list">
+                    <div class="chat-item"><div class="chat-avatar"></div><div class="chat-info"><h4>小食神</h4><p>周末一起去探店？</p></div></div>
+                    <div class="chat-item"><div class="chat-avatar"></div><div class="chat-info"><h4>走四方</h4><p>川西攻略需要吗？</p></div></div>
+                </div>
+            </div>
+
+            <!-- 我的页面（个人主页） -->
+            <div id="profile-page" class="page">
+                <div class="profile-header">
+                    <div class="profile-avatar"></div>
+                    <div class="profile-info">
+                        <h2>小明 <button class="edit-profile" onclick="alert('编辑资料')">编辑</button></h2>
+                        <p>📱 活跃 · 信用分 98 · 上海</p>
+                    </div>
+                </div>
+                <div class="section-title">🏷️ 我的搭子标签</div>
+                <div class="tag-wall"><div class="tag-items"><span class="tag-item">饭搭子 · 12次</span><span class="tag-item">旅行搭子 · 5次</span><span class="tag-item">游戏搭子 · 8次</span></div></div>
+                <div class="section-title">🏆 成就徽章</div>
+                <div class="tag-wall"><div class="achievement-grid"><span class="achievement">🏆 社交达人</span><span class="achievement">⏱️ 准时王</span><span class="achievement">🤝 人气搭子</span></div></div>
+                <div class="section-title">📝 我的动态</div>
+                <div class="feed-mini"><div class="card"><div class="card-image"><span class="card-tag">#旅行搭子</span></div><div class="card-content"><div class="card-title">川西徒步，风景绝美！</div><div class="card-detail"><span>❤️ 24点赞</span></div></div></div></div>
+                <div class="section-title">📋 组局记录</div>
+                <div class="group-record"><div class="record-item"><span>发起的组局</span><span>羽毛球（2/4）</span></div></div>
+            </div>
+        </div>
+
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+            <label for="rd-home" class="nav-item"><span class="icon">🏠</span><span>首页</span></label>
+            <label for="rd-group" class="nav-item"><span class="icon">📍</span><span>组局</span></label>
+            <div class="nav-item center" id="postBtn"><span class="icon">+</span><span>发布</span></div>
+            <label for="rd-message" class="nav-item"><span class="icon">💬</span><span>消息</span></label>
+            <label for="rd-profile" class="nav-item"><span class="icon">👤</span><span>我的</span></label>
+        </div>
+
+        <!-- 语音问一问浮层 -->
+        <div class="voice-overlay" id="voiceOverlay">...</div>
+
+        <!-- 用户操作菜单（五个功能） -->
+        <div class="user-menu-overlay" id="userMenuOverlay">
+            <div class="user-menu-panel">
+                <div class="user-menu-header">
+                    <h3 id="userMenuTitle">与 小食神 互动</h3>
+                    <div class="close-user-menu" id="closeUserMenu">✕</div>
+                </div>
+                <div class="user-menu-item" id="menuAddFriend"><span class="icon">👤+</span>加好友</div>
+                <div class="user-menu-item" id="menuPrivateMsg"><span class="icon">💬</span>私信</div>
+                <div class="user-menu-item" id="menuComment"><span class="icon">✉️</span>留言</div>
+                <div class="user-menu-item" id="menuSoul"><span class="icon">🔮</span>灵魂20问</div>
+                <div class="user-menu-item" id="menuPat"><span class="icon">👋</span>拍一拍</div>
+                <div class="user-menu-cancel" id="cancelUserMenu">取消</div>
+            </div>
+        </div>
+
+        <!-- 灵魂20问浮层 -->
+        <div class="soul-overlay" id="soulOverlay">
+            <div class="soul-panel">
+                <div class="soul-header">
+                    <h3 id="soulTitle">灵魂20问 · 与小食神匿名聊天</h3>
+                    <div class="close-soul" id="closeSoul">✕</div>
+                </div>
+                <div class="chat-progress"><div class="chat-progress-fill" id="progressFill" style="width:0%;"></div></div>
+                <div class="chat-messages" id="soulMessages"></div>
+                <div class="chat-input"><input type="text" id="soulInput" placeholder="输入你的问题..."><button id="sendSoul">发送</button></div>
+                <div class="unlock-hint" id="unlockHint">✨ 再聊 20 句即可解锁对方信息</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 基础初始化 ==========
+        const voiceBtn = document.getElementById('voiceBtn');
+        const voiceOverlay = document.getElementById('voiceOverlay');
+        // 语音功能略（保持之前）
+
+        // 二级导航切换
+        const secondaryTabs = document.querySelectorAll('.secondary-nav .nav-tab');
+        const discoverFeed = document.getElementById('feedContainer');
+        const followFeed = document.getElementById('followFeed');
+        const localFeed = document.getElementById('localFeed');
+
+        function showFeed(type) {
+            discoverFeed.style.display = 'none';
+            followFeed.style.display = 'none';
+            localFeed.style.display = 'none';
+            if (type === 'discover') discoverFeed.style.display = 'block';
+            else if (type === 'follow') followFeed.style.display = 'block';
+            else if (type === 'local') localFeed.style.display = 'block';
+            secondaryTabs.forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.secondary-nav .nav-tab[data-feed="${type}"]`).classList.add('active');
+        }
+        secondaryTabs.forEach(tab => {
+            tab.addEventListener('click', function() { showFeed(this.dataset.feed); });
+        });
+        showFeed('discover');
+
+        // 分类筛选
+        const categoryItems = document.querySelectorAll('.category-item');
+        const discoverCards = document.querySelectorAll('#feedContainer .card');
+        function filterCards(category) {
+            discoverCards.forEach(card => {
+                card.style.display = (category === 'all' || card.dataset.category === category) ? 'block' : 'none';
+            });
+        }
+        categoryItems.forEach(item => {
+            item.addEventListener('click', function() {
+                if (!discoverFeed.style.display || discoverFeed.style.display === 'none') showFeed('discover');
+                categoryItems.forEach(tab => tab.classList.remove('active'));
+                this.classList.add('active');
+                filterCards(this.dataset.category);
+            });
+        });
+        filterCards('all');
+
+        // 同城热门切换
+        const hotTabs = document.querySelectorAll('.hot-tab');
+        const hotGroup = document.getElementById('hotGroupList');
+        const hotPost = document.getElementById('hotPostList');
+        hotTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                hotTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                if (this.dataset.hot === 'group') {
+                    hotGroup.style.display = 'block';
+                    hotPost.style.display = 'none';
+                } else {
+                    hotGroup.style.display = 'none';
+                    hotPost.style.display = 'block';
+                }
+            });
+        });
+
+        // ========== 用户头像菜单（集成五个功能） ==========
+        const userMenuOverlay = document.getElementById('userMenuOverlay');
+        const userMenuTitle = document.getElementById('userMenuTitle');
+        const closeUserMenu = document.getElementById('closeUserMenu');
+        const cancelUserMenu = document.getElementById('cancelUserMenu');
+        const menuAddFriend = document.getElementById('menuAddFriend');
+        const menuPrivateMsg = document.getElementById('menuPrivateMsg');
+        const menuComment = document.getElementById('menuComment');
+        const menuSoul = document.getElementById('menuSoul');
+        const menuPat = document.getElementById('menuPat');
+        let currentUsername = '';
+
+        // 点击卡片头像区域弹出菜单
+        document.querySelector('.main-content').addEventListener('click', function(e) {
+            const header = e.target.closest('.card-header');
+            if (!header) return;
+            const username = header.dataset.username;
+            if (!username) return;
+            currentUsername = username;
+            userMenuTitle.innerText = `与 ${username} 互动`;
+            userMenuOverlay.classList.add('show');
+        });
+
+        closeUserMenu.addEventListener('click', () => userMenuOverlay.classList.remove('show'));
+        cancelUserMenu.addEventListener('click', () => userMenuOverlay.classList.remove('show'));
+        userMenuOverlay.addEventListener('click', (e) => {
+            if (e.target === userMenuOverlay) userMenuOverlay.classList.remove('show');
+        });
+
+        // 菜单项功能
+        menuAddFriend.addEventListener('click', () => {
+            alert(`好友请求已发送给 ${currentUsername}，等待对方同意`);
+            userMenuOverlay.classList.remove('show');
+        });
+        menuPrivateMsg.addEventListener('click', () => {
+            alert(`私信功能：你可以给 ${currentUsername} 发消息了`);
+            userMenuOverlay.classList.remove('show');
+        });
+        menuComment.addEventListener('click', () => {
+            alert(`留言功能：请在 ${currentUsername} 的帖子下方输入评论`);
+            userMenuOverlay.classList.remove('show');
+        });
+        menuSoul.addEventListener('click', () => {
+            openSoul(currentUsername);
+            userMenuOverlay.classList.remove('show');
+        });
+        menuPat.addEventListener('click', () => {
+            alert(`👋 你拍了拍 ${currentUsername}`);
+            userMenuOverlay.classList.remove('show');
+        });
+
+        // ========== 灵魂20问持久化 ==========
+        const soulOverlay = document.getElementById('soulOverlay');
+        const closeSoul = document.getElementById('closeSoul');
+        const soulTitle = document.getElementById('soulTitle');
+        const soulMessages = document.getElementById('soulMessages');
+        const soulInput = document.getElementById('soulInput');
+        const sendSoul = document.getElementById('sendSoul');
+        const progressFill = document.getElementById('progressFill');
+        const unlockHint = document.getElementById('unlockHint');
+
+        const chatProgress = {};
+
+        function openSoul(username) {
+            if (!chatProgress[username]) {
+                chatProgress[username] = {
+                    messages: [
+                        { sender: 'me', text: '你最喜欢的一次旅行是哪里？' },
+                        { sender: 'you', text: '应该是云南，风景特别美。你呢？' },
+                        { sender: 'me', text: '我喜欢海边，尤其想找人一起去冲浪🏄' }
+                    ],
+                    count: 3
+                };
+            }
+            const data = chatProgress[username];
+            soulTitle.innerText = `灵魂20问 · 与 ${username} 匿名聊天`;
+            renderSoulMessages(data.messages);
+            updateProgress(data.count);
+            soulOverlay.classList.add('show');
+            soulInput.focus();
+            soulOverlay.dataset.currentUser = username;
+        }
+
+        function renderSoulMessages(messages) {
+            soulMessages.innerHTML = messages.map(msg => {
+                const cls = msg.sender === 'me' ? 'me' : 'you';
+                return `<div class="message ${cls}"><div class="bubble">${msg.text}</div></div>`;
+            }).join('');
+            soulMessages.scrollTop = soulMessages.scrollHeight;
+        }
+
+        function updateProgress(count) {
+            const percent = (count / 20) * 100;
+            progressFill.style.width = percent + '%';
+            if (count >= 20) {
+                unlockHint.innerText = '🎉 已完成20问！点击查看对方资料并自动发送好友请求';
+                unlockHint.style.cursor = 'pointer';
+                unlockHint.onclick = () => {
+                    const username = soulOverlay.dataset.currentUser;
+                    alert(`对方资料：${username}，已自动发送好友请求`);
+                    soulOverlay.classList.remove('show');
+                };
+            } else {
+                unlockHint.innerText = `✨ 再聊 ${20 - count} 句即可解锁对方信息`;
+                unlockHint.onclick = null;
+            }
+        }
+
+        sendSoul.addEventListener('click', function() {
+            const msg = soulInput.value.trim();
+            if (!msg) return;
+            const username = soulOverlay.dataset.currentUser;
+            if (!username) return;
+
+            const data = chatProgress[username];
+            data.messages.push({ sender: 'me', text: msg });
+            data.count++;
+            renderSoulMessages(data.messages);
+            updateProgress(data.count);
+            soulInput.value = '';
+
+            // 模拟对方回复
+            if (data.count % 2 === 0) {
+                setTimeout(() => {
+                    data.messages.push({ sender: 'you', text: '哈哈，听起来不错！' });
+                    data.count++;
+                    renderSoulMessages(data.messages);
+                    updateProgress(data.count);
+                }, 800);
+            }
+        });
+
+        closeSoul.addEventListener('click', () => soulOverlay.classList.remove('show'));
+        soulOverlay.addEventListener('click', (e) => {
+            if (e.target === soulOverlay) soulOverlay.classList.remove('show');
+        });
+
+        // 继续对话徽章显示
+        function updateResumeBadges() {
+            document.querySelectorAll('.card-header').forEach(header => {
+                const username = header.dataset.username;
+                if (username && chatProgress[username] && chatProgress[username].count < 20) {
+                    const badge = header.querySelector('.resume-badge');
+                    if (badge) badge.style.display = 'inline-block';
+                }
+            });
+        }
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('resume-badge')) {
+                const username = e.target.dataset.username;
+                if (username) openSoul(username);
+            }
+        });
+
+        // ========== 真实地图初始化 ==========
+        function initMap() {
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer) return;
+            const map = L.map('map').setView([31.2304, 121.4737], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            const groups = [
+                { lat: 31.235, lng: 121.475, name: '羽毛球 · 徐汇滨江', people: '2/4人', time: '今天19:00' },
+                { lat: 31.240, lng: 121.480, name: '日料探店 · 静安寺', people: '1/3人', time: '明天12:30' },
+                { lat: 31.220, lng: 121.460, name: 'Switch聚会', people: '3/6人', time: '周六14:00' }
+            ];
+            groups.forEach(g => {
+                const marker = L.marker([g.lat, g.lng]).addTo(map);
+                marker.bindPopup(`<b>${g.name}</b><br>${g.people}<br>${g.time}`);
+            });
+        }
+
+        document.getElementById('rd-group').addEventListener('change', function() {
+            if (this.checked) setTimeout(initMap, 100);
+        });
+        if (document.getElementById('rd-group').checked) setTimeout(initMap, 100);
+
+        // 语音和发布按钮
+        closeVoice = document.getElementById('closeVoice');
+        if (closeVoice) closeVoice.addEventListener('click', () => voiceOverlay.classList.remove('show'));
+        voiceBtn.addEventListener('click', () => voiceOverlay.classList.add('show'));
+        document.getElementById('postBtn').addEventListener('click', () => alert('发布菜单'));
+        document.getElementById('floatGroupBtn').addEventListener('click', () => alert('发布菜单'));
+    </script>
+</body>
 </html>
